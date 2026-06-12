@@ -10,6 +10,7 @@ export function AuthForm() {
   const [tab, setTab] = useState<Tab>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
@@ -21,6 +22,7 @@ export function AuthForm() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setSuccess('')
     setLoading(true)
     try {
       const result = await signIn('credentials', {
@@ -30,13 +32,15 @@ export function AuthForm() {
       })
       if (result?.error) {
         setError('Invalid email or password.')
+        setLoading(false)
       } else {
+        setSuccess('Signed in! Taking you to the app…')
+        // Keep loading=true while navigating so button stays green
         router.push('/')
         router.refresh()
       }
     } catch {
       setError('Network error. Please try again.')
-    } finally {
       setLoading(false)
     }
   }
@@ -44,6 +48,7 @@ export function AuthForm() {
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setSuccess('')
     setLoading(true)
     try {
       const res = await fetch('/api/auth/register', {
@@ -57,8 +62,11 @@ export function AuthForm() {
 
       if (!res.ok) {
         setError(data.error ?? `Registration failed (${res.status}). Please try again.`)
+        setLoading(false)
         return
       }
+
+      setSuccess('Account created! Signing you in…')
 
       // Auto sign-in after registration
       const result = await signIn('credentials', {
@@ -67,15 +75,18 @@ export function AuthForm() {
         redirect: false,
       })
       if (result?.error) {
-        setError('Account created! Please sign in.')
+        setSuccess('')
+        setError('Account created! Please sign in with your credentials.')
         setTab('login')
+        setLoading(false)
       } else {
+        setSuccess('All set! Taking you to the app…')
+        // Keep loading=true while navigating
         router.push('/')
         router.refresh()
       }
     } catch {
       setError('Network error. Please try again.')
-    } finally {
       setLoading(false)
     }
   }
@@ -93,18 +104,25 @@ export function AuthForm() {
     boxSizing: 'border-box',
   }
 
-  const btnStyle: React.CSSProperties = {
+  const getBtnStyle = (): React.CSSProperties => ({
     width: '100%',
     padding: '15px',
     borderRadius: 14,
     border: 'none',
-    background: loading ? '#f5f0ea' : '#f97316',
-    color: loading ? '#9a7e68' : 'white',
+    background: success ? '#16a34a' : loading ? '#fed7aa' : '#f97316',
+    color: success ? 'white' : loading ? '#9a4a00' : 'white',
     fontSize: 15,
     fontWeight: 800,
     cursor: loading ? 'not-allowed' : 'pointer',
     fontFamily: 'inherit',
     marginTop: 8,
+    transition: 'background 0.2s, color 0.2s',
+  })
+
+  const getButtonLabel = (isLogin: boolean) => {
+    if (success) return '✓ ' + success
+    if (loading) return isLogin ? 'Signing in…' : 'Creating account…'
+    return isLogin ? 'Sign In →' : 'Create Account →'
   }
 
   return (
@@ -130,7 +148,8 @@ export function AuthForm() {
         {(['login', 'signup'] as Tab[]).map(t => (
           <button
             key={t}
-            onClick={() => { setTab(t); setError('') }}
+            onClick={() => { setTab(t); setError(''); setSuccess('') }}
+            disabled={loading}
             style={{
               flex: 1,
               padding: '10px',
@@ -140,7 +159,7 @@ export function AuthForm() {
               color: tab === t ? '#1c0a00' : '#7c6e5a',
               fontSize: 14,
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: loading ? 'default' : 'pointer',
               boxShadow: tab === t ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
               fontFamily: 'inherit',
             }}
@@ -167,6 +186,24 @@ export function AuthForm() {
         </div>
       )}
 
+      {success && !error && (
+        <div
+          style={{
+            padding: '10px 14px',
+            background: '#dcfce7',
+            border: '1px solid #86efac',
+            borderRadius: 10,
+            fontSize: 13,
+            color: '#16a34a',
+            marginBottom: 16,
+            lineHeight: 1.5,
+            fontWeight: 600,
+          }}
+        >
+          ✓ {success}
+        </div>
+      )}
+
       {tab === 'login' ? (
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input
@@ -175,6 +212,7 @@ export function AuthForm() {
             value={loginEmail}
             onChange={e => setLoginEmail(e.target.value)}
             required
+            disabled={loading}
             style={inputStyle}
           />
           <input
@@ -183,10 +221,11 @@ export function AuthForm() {
             value={loginPassword}
             onChange={e => setLoginPassword(e.target.value)}
             required
+            disabled={loading}
             style={inputStyle}
           />
-          <button type="submit" style={btnStyle} disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In →'}
+          <button type="submit" style={getBtnStyle()} disabled={loading}>
+            {getButtonLabel(true)}
           </button>
         </form>
       ) : (
@@ -197,6 +236,7 @@ export function AuthForm() {
             value={name}
             onChange={e => setName(e.target.value)}
             required
+            disabled={loading}
             style={inputStyle}
           />
           <input
@@ -205,6 +245,7 @@ export function AuthForm() {
             value={signupEmail}
             onChange={e => setSignupEmail(e.target.value)}
             required
+            disabled={loading}
             style={inputStyle}
           />
           <input
@@ -214,10 +255,11 @@ export function AuthForm() {
             onChange={e => setSignupPassword(e.target.value)}
             minLength={8}
             required
+            disabled={loading}
             style={inputStyle}
           />
-          <button type="submit" style={btnStyle} disabled={loading}>
-            {loading ? 'Creating account…' : 'Create Account →'}
+          <button type="submit" style={getBtnStyle()} disabled={loading}>
+            {getButtonLabel(false)}
           </button>
         </form>
       )}
