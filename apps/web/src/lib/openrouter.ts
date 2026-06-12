@@ -69,7 +69,7 @@ RULES:
 - youtubeInsight: 2-3 sentences on YouTube review coverage`
 
   const { output } = await generateText({
-    model: openrouter('deepseek/deepseek-chat'),
+    model: openrouter('deepseek/deepseek-v4-flash'),
     output: Output.object({ schema: ProductSynthesisSchema }),
     prompt,
     maxOutputTokens: 800,
@@ -114,7 +114,7 @@ Re-order the products based on what the user cares about and explain in 2-3 conv
 Return the product IDs in new priority order and a short sortLabel (e.g. "Battery life", "Price", "ANC").`
 
   const { output } = await generateText({
-    model: openrouter('deepseek/deepseek-chat'),
+    model: openrouter('deepseek/deepseek-v4-flash'),
     output: Output.object({ schema: RefinementSchema }),
     prompt,
     maxOutputTokens: 300,
