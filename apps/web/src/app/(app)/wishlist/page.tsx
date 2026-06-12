@@ -1,7 +1,18 @@
 import { auth } from '@/auth'
 import { getPrisma } from '@/lib/prisma'
 import type { Verdict } from '@/lib/types'
-import type { WishlistItem as PrismaWishlistItem } from '@prisma/client'
+
+type PrismaWishlistItem = {
+  id: string
+  userId: string
+  productId: string
+  productName: string
+  productImage: string | null
+  currentPrice: number | null
+  verdict: string | null
+  productData: string
+  createdAt: Date
+}
 
 export default async function WishlistPage() {
   const session = await auth()
