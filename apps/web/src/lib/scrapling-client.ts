@@ -45,7 +45,7 @@ export async function searchProducts(query: string, category?: string) {
   try {
     const openrouter = getOpenRouter()
     const { output } = await generateText({
-      model: openrouter('deepseek/deepseek-chat-v3.5'),
+      model: openrouter('deepseek/deepseek-chat'),
       output: Output.object({ schema: SearchResultSchema }),
       prompt: `You are a product database for the Indian market (Amazon.in / Flipkart).
 List up to 8 REAL products that match this search query. Only include products actually sold in India.
@@ -72,7 +72,7 @@ export async function getProductData(productName: string, category?: string) {
   try {
     const openrouter = getOpenRouter()
     const { output } = await generateText({
-      model: openrouter('deepseek/deepseek-chat-v3.5'),
+      model: openrouter('deepseek/deepseek-chat'),
       output: Output.object({ schema: ProductDataSchema }),
       prompt: `You are a product ratings database for Amazon.in and Flipkart India.
 Provide realistic ratings and review counts for this product as it appears on Indian e-commerce.
