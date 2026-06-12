@@ -11,11 +11,9 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Login fields
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
 
-  // Signup fields
   const [name, setName] = useState('')
   const [signupEmail, setSignupEmail] = useState('')
   const [signupPassword, setSignupPassword] = useState('')
@@ -24,16 +22,22 @@ export function AuthForm() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const result = await signIn('credentials', {
-      email: loginEmail,
-      password: loginPassword,
-      redirect: false,
-    })
-    setLoading(false)
-    if (result?.error) {
-      setError('Invalid email or password.')
-    } else {
-      router.push('/')
+    try {
+      const result = await signIn('credentials', {
+        email: loginEmail,
+        password: loginPassword,
+        redirect: false,
+      })
+      if (result?.error) {
+        setError('Invalid email or password.')
+      } else {
+        router.push('/')
+        router.refresh()
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -41,28 +45,38 @@ export function AuthForm() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email: signupEmail, password: signupPassword }),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error ?? 'Registration failed.')
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email: signupEmail, password: signupPassword }),
+      })
+
+      let data: { error?: string } = {}
+      try { data = await res.json() } catch { /* ignore non-JSON */ }
+
+      if (!res.ok) {
+        setError(data.error ?? `Registration failed (${res.status}). Please try again.`)
+        return
+      }
+
+      // Auto sign-in after registration
+      const result = await signIn('credentials', {
+        email: signupEmail,
+        password: signupPassword,
+        redirect: false,
+      })
+      if (result?.error) {
+        setError('Account created! Please sign in.')
+        setTab('login')
+      } else {
+        router.push('/')
+        router.refresh()
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
       setLoading(false)
-      return
-    }
-    const result = await signIn('credentials', {
-      email: signupEmail,
-      password: signupPassword,
-      redirect: false,
-    })
-    setLoading(false)
-    if (result?.error) {
-      setError('Account created. Please log in.')
-      setTab('login')
-    } else {
-      router.push('/')
     }
   }
 
@@ -146,6 +160,7 @@ export function AuthForm() {
             fontSize: 13,
             color: '#dc2626',
             marginBottom: 16,
+            lineHeight: 1.5,
           }}
         >
           {error}
@@ -206,46 +221,6 @@ export function AuthForm() {
           </button>
         </form>
       )}
-
-      {/* Divider */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          margin: '20px 0',
-          color: '#9a7e68',
-          fontSize: 13,
-        }}
-      >
-        <div style={{ flex: 1, height: 1, background: '#e8ddd0' }} />
-        OR
-        <div style={{ flex: 1, height: 1, background: '#e8ddd0' }} />
-      </div>
-
-      {/* Google */}
-      <button
-        onClick={() => signIn('google', { callbackUrl: '/' })}
-        style={{
-          width: '100%',
-          padding: '14px',
-          borderRadius: 14,
-          border: '1.5px solid #e8ddd0',
-          background: 'white',
-          fontSize: 14,
-          fontWeight: 700,
-          color: '#1c0a00',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 10,
-          fontFamily: 'inherit',
-        }}
-      >
-        <span style={{ fontSize: 20 }}>🔵</span>
-        Continue with Google
-      </button>
     </div>
   )
 }
