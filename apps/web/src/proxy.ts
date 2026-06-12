@@ -9,6 +9,7 @@ export function proxy(request: NextRequest) {
   // Let auth API and static files through
   if (
     pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/debug-search') ||
     pathname.startsWith('/_next') ||
     pathname.match(/\.(png|jpg|svg|ico|webp)$/)
   ) {
