@@ -15,15 +15,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const email = credentials?.email as string
         const password = credentials?.password as string
         if (!email || !password) return null
-
-        const prisma = getPrisma()
-        const user = await prisma.user.findUnique({ where: { email } })
-        if (!user?.password) return null
-
-        const valid = await bcrypt.compare(password, user.password)
-        if (!valid) return null
-
-        return { id: user.id, name: user.name, email: user.email, image: user.image }
+        try {
+          const prisma = getPrisma()
+          const user = await prisma.user.findUnique({ where: { email } })
+          if (!user?.password) {
+            console.error(JSON.stringify({ msg: 'auth: no user or no password', email }))
+            return null
+          }
+          const valid = await bcrypt.compare(password, user.password)
+          if (!valid) {
+            console.error(JSON.stringify({ msg: 'auth: wrong password', email }))
+            return null
+          }
+          return { id: user.id, name: user.name, email: user.email, image: user.image }
+        } catch (err) {
+          console.error(JSON.stringify({ msg: 'auth: authorize threw', error: String(err) }))
+          return null
+        }
       },
     }),
   ],
