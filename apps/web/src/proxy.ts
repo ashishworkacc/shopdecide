@@ -15,8 +15,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check for session token cookie (set by NextAuth)
+  // Check for session token cookie
+  // NextAuth v5 (Auth.js) renamed the cookie from next-auth.* to authjs.*
   const hasSession =
+    request.cookies.has('authjs.session-token') ||
+    request.cookies.has('__Secure-authjs.session-token') ||
     request.cookies.has('next-auth.session-token') ||
     request.cookies.has('__Secure-next-auth.session-token')
 
