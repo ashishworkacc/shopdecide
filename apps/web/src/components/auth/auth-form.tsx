@@ -1,12 +1,10 @@
 'use client'
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 
 type Tab = 'login' | 'signup'
 
 export function AuthForm() {
-  const router = useRouter()
   const [tab, setTab] = useState<Tab>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -35,9 +33,8 @@ export function AuthForm() {
         setLoading(false)
       } else {
         setSuccess('Signed in! Taking you to the app…')
-        // Keep loading=true while navigating so button stays green
-        router.push('/')
-        router.refresh()
+        // Hard navigate so the server sees the new session cookie
+        window.location.href = '/'
       }
     } catch {
       setError('Network error. Please try again.')
@@ -81,9 +78,8 @@ export function AuthForm() {
         setLoading(false)
       } else {
         setSuccess('All set! Taking you to the app…')
-        // Keep loading=true while navigating
-        router.push('/')
-        router.refresh()
+        // Hard navigate so the server sees the new session cookie
+        window.location.href = '/'
       }
     } catch {
       setError('Network error. Please try again.')
