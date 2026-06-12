@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest } from 'next/server'
 import { auth } from '@/auth'
 import { searchProducts, getProductData } from '@/lib/scrapling-client'
