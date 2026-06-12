@@ -1,7 +1,7 @@
 import { auth } from '@/auth'
 import { getPrisma } from '@/lib/prisma'
-import { verdictFromScore, scoreColor } from '@/lib/scoring'
 import type { Verdict } from '@/lib/types'
+import type { WishlistItem as PrismaWishlistItem } from '@prisma/client'
 
 export default async function WishlistPage() {
   const session = await auth()
@@ -67,7 +67,7 @@ export default async function WishlistPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {items.map(item => {
+          {items.map((item: PrismaWishlistItem) => {
             const verdict = (item.verdict as Verdict) ?? 'WAIT'
             const badge = BADGE_COLORS[verdict] ?? BADGE_COLORS.WAIT
             return (
